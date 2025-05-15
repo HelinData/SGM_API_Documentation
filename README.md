@@ -1,6 +1,6 @@
-# Smart Grid Manager API - User Guide
+# Helin Smart Grid Manager API - User Guide
 
-Welcome to the Smart Grid Manager API! This guide will walk you through everything you need to know to interact with the API effectively. The Smart Grid Manager system provides a secure, privacy-focused solution that gives you complete control over your energy assets while ensuring reliable operation.
+Welcome to Helin's Smart Grid Manager API User Guide! This guide will walk you through everything you need to know to interact with the API effectively. The Smart Grid Manager system provides a secure, privacy-focused solution that gives you complete control over your energy assets while ensuring reliable operation.
 
 ## Understanding Smart Grid Manager
 
