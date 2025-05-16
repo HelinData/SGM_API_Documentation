@@ -681,7 +681,7 @@ Response:
     "site_id": "01751407-d87b-4d89-b47f-cca4dfb85a92",
     "meta_data": {},
     "curtail_in_batch": true,
-    "iothub": "iothub-euw-polaris-engineering"
+    "iothub": "iothub-euw-dummy"
   },
   {
     "id": "2d3f4a5b-6c1e-bd8a-4f21-5e9d14b3c7a0",
@@ -690,7 +690,7 @@ Response:
     "site_id": "85a2dfb4-cca4-47fb-89bd-87b4d7014751",
     "meta_data": {},
     "curtail_in_batch": true,
-    "iothub": "iothub-euw-polaris-engineering"
+    "iothub": "iothub-euw-dummy"
   }
 ]
 ```
@@ -714,7 +714,7 @@ Response:
   "site_id": "01751407-d87b-4d89-b47f-cca4dfb85a92",
   "meta_data": {},
   "curtail_in_batch": true,
-  "iothub": "iothub-euw-polaris-engineering",
+  "iothub": "iothub-euw-dummy",
   "configuration": {
     "module": "PolarisInverterCurtailment"
   }
@@ -741,7 +741,7 @@ Response:
     "site_id": "01751407-d87b-4d89-b47f-cca4dfb85a92",
     "meta_data": {},
     "curtail_in_batch": true,
-    "iothub": "iothub-euw-polaris-engineering"
+    "iothub": "iothub-euw-dummy"
   }
 ]
 ```
