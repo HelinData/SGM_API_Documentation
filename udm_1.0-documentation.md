@@ -36,7 +36,7 @@ The UDM 1.0 utilizes a structured naming convention for assets to ensure consist
 
 **Format:** `Client/SiteID/PlantID/system/DeviceCat_ID/measurement`
 
-**Example:** `SRCK/DRDN090/PL01/SYS01/INVR_AB8383/TmpCab`
+**Example:** `SRRL/DSV090/PL01/SYS01/INVR_BB8383/TmpCab`
 
 This hierarchical structure allows for easy identification of:
 - Client or organization
