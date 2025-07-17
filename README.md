@@ -1,6 +1,6 @@
-# Helin Smart Grid Manager API - User Guide
+# Smart Grid Manager API - User Guide
 
-Welcome to Helin's Smart Grid Manager API User Guide! This guide will walk you through everything you need to know to interact with the API effectively. The Smart Grid Manager system provides a secure, privacy-focused solution that gives you complete control over your energy assets while ensuring reliable operation.
+Welcome to the Smart Grid Manager API! This guide will walk you through everything you need to know to interact with the API effectively. The Smart Grid Manager system provides a secure, privacy-focused solution that gives you complete control over your energy assets while ensuring reliable operation.
 
 ## Understanding Smart Grid Manager
 
@@ -61,7 +61,7 @@ Smart Grid Manager supports multiple methods to deliver control setpoints to dev
    - Ideal for emergency responses or manual testing scenarios
 
 2. **[Control Request from Scheduler](#scheduled-commands)**
-   - Time-based setpoints defined in 15-minute increments
+   - Time-based setpoints in UTC defined in 15-minute increments
    - Automatically activated at the scheduled times
    - Only takes effect if no API request is currently active
    - Provides planned, automated control throughout the day
@@ -176,13 +176,13 @@ When enabled, the closed loop controller intercepts all device control requests 
 
 ### Scheduled Commands
 
-Scheduled commands allow for time-based control of grid assets, enabling automated operation based on predefined time slots throughout the day.
+Scheduled commands allow for time-based control (in UTC) of grid assets, enabling automated operation based on predefined time slots throughout the day.
 
 #### How Scheduled Commands Work
 
 1. **Schedule Definition**:
    - Schedules are defined for specific dates and device categories
-   - Time slots are set in 15-minute increments (00:00, 00:15, 00:30, 00:45)
+   - Time slots are set in UTC in 15-minute increments (00:00, 00:15, 00:30, 00:45)
    - Each time slot specifies a control value to be applied
    - Values range from 0-100 or device-specific control parameters
 
@@ -293,7 +293,7 @@ The cyclic writer serves as a reliability enhancement, ensuring that the intende
 - **Real-time Control**: Adjust power flow of diverse grid assets instantly
 - **Multi-Asset Support**: Manage solar inverters, wind turbines, battery systems, EV chargers, and more
 - **Closed Loop Control**: Maintain precise setpoints automatically through PID feedback control
-- **Scheduled Management**: Define operation parameters for specific time periods across all asset types
+- **Scheduled Management**: Define operation parameters for specific time (UTC) periods across all asset types
 - **Category-based Control**: Group devices by type for easier management (inverters, batteries, EV chargers, etc.)
 - **Automated Failsafes**: Watchdog mechanism ensures devices revert to safe states
 - **Comprehensive Logging**: Track all control activities and device errors across your asset portfolio
@@ -681,7 +681,7 @@ Response:
     "site_id": "01751407-d87b-4d89-b47f-cca4dfb85a92",
     "meta_data": {},
     "curtail_in_batch": true,
-    "iothub": "iothub-euw-dummy"
+    "iothub": "iothub-euw-polaris-engineering"
   },
   {
     "id": "2d3f4a5b-6c1e-bd8a-4f21-5e9d14b3c7a0",
@@ -690,7 +690,7 @@ Response:
     "site_id": "85a2dfb4-cca4-47fb-89bd-87b4d7014751",
     "meta_data": {},
     "curtail_in_batch": true,
-    "iothub": "iothub-euw-dummy"
+    "iothub": "iothub-euw-polaris-engineering"
   }
 ]
 ```
@@ -714,7 +714,7 @@ Response:
   "site_id": "01751407-d87b-4d89-b47f-cca4dfb85a92",
   "meta_data": {},
   "curtail_in_batch": true,
-  "iothub": "iothub-euw-dummy",
+  "iothub": "iothub-euw-polaris-engineering",
   "configuration": {
     "module": "PolarisInverterCurtailment"
   }
@@ -741,7 +741,7 @@ Response:
     "site_id": "01751407-d87b-4d89-b47f-cca4dfb85a92",
     "meta_data": {},
     "curtail_in_batch": true,
-    "iothub": "iothub-euw-dummy"
+    "iothub": "iothub-euw-polaris-engineering"
   }
 ]
 ```
@@ -1133,7 +1133,7 @@ Response:
 
 ### List All Schedules
 
-Retrieve all curtailment schedules across all sites.
+Retrieve all curtailment schedules in UTC across all sites.
 
 ```bash
 curl -X GET "https://smartsolar.polarisedge.com/v1/schedules" \
@@ -1162,7 +1162,7 @@ Response:
 
 ### Create a Schedule
 
-Create a new curtailment schedule for a site.
+Create a new curtailment schedule in UTC for a site.
 
 ```bash
 curl -X POST "https://smartsolar.polarisedge.com/v1/schedules" \
@@ -1201,7 +1201,7 @@ Response:
 
 ### Update a Schedule
 
-Update an existing schedule for a specific date and category.
+Update an existing schedule in UTC for a specific date and category.
 
 ```bash
 curl -X PUT "https://smartsolar.polarisedge.com/v1/schedules/2024-08-06/inverter" \
@@ -1238,7 +1238,7 @@ Response:
 
 ### Get Schedules for a Date
 
-Retrieve all schedules for a specific date.
+Retrieve all schedules in UTC for a specific date.
 
 ```bash
 curl -X GET "https://smartsolar.polarisedge.com/v1/schedules/2024-08-06" \
@@ -1267,7 +1267,7 @@ Response:
 
 ### Get Schedules for a Site
 
-Retrieve all schedules for a specific site.
+Retrieve all schedules in UTC for a specific site.
 
 ```bash
 curl -X GET "https://smartsolar.polarisedge.com/v1/sites/01751407-d87b-4d89-b47f-cca4dfb85a92/schedules" \
@@ -1309,7 +1309,7 @@ Response:
 
 ### Get Site Schedules for a Specific Date
 
-Retrieve all schedules for a specific site on a specific date.
+Retrieve all schedules in UTC for a specific site on a specific date.
 
 ```bash
 curl -X GET "https://smartsolar.polarisedge.com/v1/sites/01751407-d87b-4d89-b47f-cca4dfb85a92/schedules/2024-08-06" \
@@ -1434,10 +1434,10 @@ The system includes a watchdog mechanism:
 ### Schedules
 
 Schedules follow some important rules:
-- Intervals are in 15-minute increments (00:00, 00:15, 00:30, 00:45, etc.)
+- Intervals are in 15-minute increments in UTC (00:00, 00:15, 00:30, 00:45, etc.)
 - A null value or missing time slot means the default value will be used
 - Manual curtailment temporarily overrides schedules until the watchdog timeout
-- Schedules are defined per day and per category
+- Schedules are defined per day and per category in UTC 
 - For maximum reliability, post your schedules more than 5 minutes before the start of the scheduled interval
 - You can send schedules as many days before as you like
 - Schedules are synchronized with the edge nodes and in case of network failure, the local schedule will be executed without interruption
