@@ -2,6 +2,52 @@
 
 Welcome to the Smart Grid Manager API! This guide will walk you through everything you need to know to interact with the API effectively. The Smart Grid Manager system provides a secure, privacy-focused solution that gives you complete control over your energy assets while ensuring reliable operation.
 
+## Table of Contents
+
+1. [Understanding Smart Grid Manager](#understanding-smart-grid-manager)
+   - [What is Smart Grid Manager?](#what-is-smart-grid-manager)
+   - [System Architecture](#system-architecture)
+   - [Command Processing Systems](#command-processing-systems)
+     - [Setpoint Delivery Methods](#setpoint-delivery-methods)
+     - [Setpoint Lifetime Management](#setpoint-lifetime-management)
+     - [Closed Loop Control Integration](#closed-loop-control-integration)
+   - [Direct API Requests](#direct-api-requests)
+   - [Closed Loop Control](#closed-loop-control)
+   - [Scheduled Commands](#scheduled-commands)
+   - [Watchdog Mechanism](#watchdog-mechanism)
+   - [Cyclic Writer](#cyclic-writer)
+   - [Key Capabilities](#key-capabilities)
+   - [Common Use Cases](#common-use-cases)
+2. [Authentication](#authentication)
+   - [Obtaining an Auth0 Bearer Token](#obtaining-an-auth0-bearer-token)
+   - [X-Management-Token](#x-management-token)
+   - [Managing Site Management Tokens](#managing-site-management-tokens)
+   - [Using the Authentication in Requests](#using-the-authentication-in-requests)
+3. [Health and Version](#health-and-version)
+   - [Check API Health](#check-api-health)
+   - [Get Site Health Report](#get-site-health-report)
+   - [Get API Version](#get-api-version)
+4. [Site Management](#site-management)
+5. [Node Management](#node-management)
+6. [Device Management](#device-management)
+7. [Control Operations](#control-operations)
+8. [Logs](#logs)
+9. [Schedules](#schedules)
+10. [Best Practices](#best-practices)
+    - [Supported Device Types](#supported-device-types)
+      - [Solar Inverters](#solar-inverters)
+      - [Battery Systems](#battery-systems)
+      - [Communication & Data Loggers](#communication--data-loggers)
+      - [Protocol Support](#protocol-support)
+      - [Special Purpose Devices](#special-purpose-devices)
+    - [Communication Protocols](#communication-protocols)
+    - [Control Values](#control-values)
+    - [Watchdog Behavior](#watchdog-behavior)
+    - [Schedules](#schedules)
+    - [Error Handling](#error-handling)
+11. [Troubleshooting](#troubleshooting)
+
+
 ## Understanding Smart Grid Manager
 
 ### What is Smart Grid Manager?
@@ -312,51 +358,6 @@ The cyclic writer serves as a reliability enhancement, ensuring that the intende
 7. **EV Charging Management**: Control and schedule EV charging stations to optimize grid impact
 8. **Demand Response**: Participate in grid demand response programs by adjusting multiple asset types simultaneously
 9. **Virtual Power Plants**: Aggregate and control diverse assets to operate as a unified virtual plant
-
-## Table of Contents
-
-1. [Understanding Smart Grid Manager](#understanding-smart-grid-manager)
-   - [What is Smart Grid Manager?](#what-is-smart-grid-manager)
-   - [System Architecture](#system-architecture)
-   - [Command Processing Systems](#command-processing-systems)
-     - [Setpoint Delivery Methods](#setpoint-delivery-methods)
-     - [Setpoint Lifetime Management](#setpoint-lifetime-management)
-     - [Closed Loop Control Integration](#closed-loop-control-integration)
-   - [Direct API Requests](#direct-api-requests)
-   - [Closed Loop Control](#closed-loop-control)
-   - [Scheduled Commands](#scheduled-commands)
-   - [Watchdog Mechanism](#watchdog-mechanism)
-   - [Cyclic Writer](#cyclic-writer)
-   - [Key Capabilities](#key-capabilities)
-   - [Common Use Cases](#common-use-cases)
-2. [Authentication](#authentication)
-   - [Obtaining an Auth0 Bearer Token](#obtaining-an-auth0-bearer-token)
-   - [X-Management-Token](#x-management-token)
-   - [Managing Site Management Tokens](#managing-site-management-tokens)
-   - [Using the Authentication in Requests](#using-the-authentication-in-requests)
-3. [Health and Version](#health-and-version)
-   - [Check API Health](#check-api-health)
-   - [Get Site Health Report](#get-site-health-report)
-   - [Get API Version](#get-api-version)
-4. [Site Management](#site-management)
-5. [Node Management](#node-management)
-6. [Device Management](#device-management)
-7. [Control Operations](#control-operations)
-8. [Logs](#logs)
-9. [Schedules](#schedules)
-10. [Best Practices](#best-practices)
-    - [Supported Device Types](#supported-device-types)
-      - [Solar Inverters](#solar-inverters)
-      - [Battery Systems](#battery-systems)
-      - [Communication & Data Loggers](#communication--data-loggers)
-      - [Protocol Support](#protocol-support)
-      - [Special Purpose Devices](#special-purpose-devices)
-    - [Communication Protocols](#communication-protocols)
-    - [Control Values](#control-values)
-    - [Watchdog Behavior](#watchdog-behavior)
-    - [Schedules](#schedules)
-    - [Error Handling](#error-handling)
-11. [Troubleshooting](#troubleshooting)
 
 ## Authentication
 
