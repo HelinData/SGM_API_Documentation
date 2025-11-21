@@ -5,19 +5,22 @@ Welcome to the Smart Grid Manager API! This guide will walk you through everythi
 ## Table of Contents
 
 1. [Understanding Smart Grid Manager](#understanding-smart-grid-manager)
-   - [What is Smart Grid Manager?](#what-is-smart-grid-manager)
-   - [System Architecture](#system-architecture)
-   - [Command Processing Systems](#command-processing-systems)
-     - [Setpoint Delivery Methods](#setpoint-delivery-methods)
-     - [Setpoint Lifetime Management](#setpoint-lifetime-management)
-     - [Closed Loop Control Integration](#closed-loop-control-integration)
-   - [Direct API Requests](#direct-api-requests)
-   - [Closed Loop Control](#closed-loop-control)
-   - [Scheduled Commands](#scheduled-commands)
-   - [Watchdog Mechanism](#watchdog-mechanism)
-   - [Cyclic Writer](#cyclic-writer)
-   - [Key Capabilities](#key-capabilities)
-   - [Common Use Cases](#common-use-cases)
+    - [What is Smart Grid Manager?](#what-is-smart-grid-manager)
+    - [System Architecture](#system-architecture)
+    - [Command Processing System](#command-processing-system)
+      - [API Setpoint Delivery Types](#setpoint-delivery-methods)
+      - [Edge Setpoint Transfer](#setpoint-lifetime-management)
+    - [API Setpoints Types in detail]()
+       - [Immediate setpoint (% or kW)]()
+       - [Scheduled setpoint (% or kW)]()
+       - [Dynamic setpoint (kW)]()
+       - [Fallback setpoint (% or kW)]()
+    - [Edge Setpoint transfer in detail]()
+       - [Cyclic write (default)]()
+       - [Cyclic write for dynamic setpoint)]()
+       - [Fallback / watchdog]()
+    - [Key Capabilities](#key-capabilities)
+    - [Common Use Cases](#common-use-cases)
 2. [Authentication](#authentication)
    - [Obtaining an Auth0 Bearer Token](#obtaining-an-auth0-bearer-token)
    - [X-Management-Token](#x-management-token)
@@ -46,7 +49,6 @@ Welcome to the Smart Grid Manager API! This guide will walk you through everythi
     - [Schedules](#schedules)
     - [Error Handling](#error-handling)
 11. [Troubleshooting](#troubleshooting)
-
 
 ## Understanding Smart Grid Manager
 
@@ -92,27 +94,32 @@ The Helin Platform serves as the critical communication backbone between the Sma
 - **Data Synchronization**: Schedule information is automatically synchronized to edge nodes
 - **Health Monitoring**: The platform continuously monitors the connection status of all edge nodes
 
-### Command Processing Systems
+### Command Processing System
 
 Smart Grid Manager employs sophisticated control mechanisms organized into two primary categories: setpoint delivery methods and setpoint lifetime management. Understanding these systems is essential for predictable control behavior.
 
-#### Setpoint Delivery Methods
+#### API Setpoint Delivery Types
 
 Smart Grid Manager supports multiple methods to deliver control setpoints to devices, with a clear priority hierarchy:
 
-1. **[Control Request via Smart Grid Manager API](#direct-api-requests)** (Highest Priority)
+1. **[Immediate setpoint (% or kW)](#direct-api-requests)** (Highest Priority)
    - Manual control requests initiated through the API endpoints
    - Immediately overrides any existing setpoints from other sources
    - Provides direct control for operators and integration systems
    - Ideal for emergency responses or manual testing scenarios
 
-2. **[Control Request from Scheduler](#scheduled-commands)**
+2. **[Scheduled setpoint (% or kW)](#scheduled-commands)**
    - Time-based setpoints in UTC defined in 15-minute increments
    - Automatically activated at the scheduled times
    - Only takes effect if no API request is currently active
    - Provides planned, automated control throughout the day
 
-3. **[Control Request from Watchdog](#watchdog-mechanism)** (Fallback)
+4. **[Dynamic setpoint (% and kW)]()**
+   - PID controlled setpoint that corrects for local use
+   - kW setting for the measurement point
+   - on/off switch for the PV system
+
+3. **[Fallback setpoint (% or kW)](#watchdog-mechanism)**
    - Safety mechanism that activates when higher-priority controls timeout
    - Restores devices to safe states automatically
    - Reverts to scheduled values or device defaults as appropriate
@@ -120,17 +127,17 @@ Smart Grid Manager supports multiple methods to deliver control setpoints to dev
 
 When multiple delivery methods attempt to control a device simultaneously, the system always respects this priority order, with API requests taking precedence over scheduled commands, and watchdog acting as a safety fallback.
 
-#### Setpoint Lifetime Management
+#### Edge Setpoint Transfer
 
 Once a setpoint has been delivered via one of the methods above, its persistence is managed through one of these approaches:
 
-1. **Singular Application**
+1. **[Singular write (to be deprecated)]()**
    - Setpoint is applied once to the device
    - No automatic repetition of the command
    - Remains in effect until explicitly changed, by for example a [Watchdog control request](#watchdog-mechanism). 
    - Used for immediate, one-time value changes
 
-2. **[Cyclic Value Application](#cyclic-writer)**
+2. **[Cyclic write (default)](#cyclic-writer)**
    - Setpoint is repeated at defined intervals
    - Ensures consistent device state over time
    - Protects against device memory loss or power cycles
@@ -138,7 +145,13 @@ Once a setpoint has been delivered via one of the methods above, its persistence
    - Only reinforces values, doesn't change existing setpoints
    - Operates independently on edge nodes for reliability
 
-3. **[Closed Loop Control Integration](#closed-loop-control)**
+3. **[Cyclic control write (for dynamic setpoint)]()**
+   - Setpoint is repeated at defined intervals
+   - Ensures consistent device state over time
+   - Operates independently on edge nodes for reliability
+   - actual value updated every cycle based on the PID controller
+
+4. **[Fallback / watchdog]()**
    - Continuously monitors actual measurements versus desired setpoints
    - Automatically calculates optimal adjustments using PID algorithms
    - Maintains desired power levels despite external variations
@@ -146,11 +159,11 @@ Once a setpoint has been delivered via one of the methods above, its persistence
 
 The entire command processing system ensures reliable, predictable control with appropriate failsafe mechanisms and clear hierarchies for operational certainty.
 
-### Direct API Requests
+### API Setpoints in detail
+
+#### Immediate Setpoints
 
 Direct API requests represent the highest priority control method in the Smart Grid Manager system, providing immediate manual control over grid assets.
-
-#### How Direct API Requests Work
 
 1. **Immediate Command Execution**:
    - Commands are sent directly through the API endpoints
@@ -183,48 +196,9 @@ Direct API requests represent the highest priority control method in the Smart G
 
 Direct API requests give operators full manual control when needed, ensuring human oversight can always take precedence in the control hierarchy.
 
-### Closed Loop Control
-
-Smart Grid Manager includes a sophisticated closed loop control system that enables automatic, real-time adjustments to maintain desired power setpoints. This PID-based control algorithm provides precise management of energy assets without requiring constant manual intervention.
-
-#### How Closed Loop Control Works
-
-1. **Continuous Monitoring**:
-   - The system constantly reads measurements from a meter device
-   - It also monitors the current output of the controlled device
-   - Readings that are more than 10 seconds old are considered stale and trigger fallback behavior
-
-2. **PID Control Algorithm**:
-   - Proportional-Integral-Derivative controller calculates optimal adjustments
-   - Proportional term responds to immediate error between setpoint and actual measurement
-   - Integral term handles persistent offsets by accumulating error over time
-   - Anti-windup mechanism prevents integral term from growing excessively
-   - Rate limiting prevents abrupt changes that could destabilize the grid
-
-3. **Feedback Loop**:
-   - The error (difference between setpoint and actual measurement) drives adjustments
-   - Adjustments are automatically scaled based on device capabilities
-   - Commands are constrained within safe operating limits
-   - The system continuously refines outputs to match the desired setpoint
-
-4. **Configuration Options**:
-   - Proportional and integral gain parameters control responsiveness
-   - Maximum rate of change limits how quickly adjustments can occur
-   - Fallback setpoint provides safe operation if readings become stale
-   - Time step determines how frequently adjustments are calculated
-
-5. **Resilience Features**:
-   - Handles communication interruptions with fallback values
-   - Automatically recovers from errors during measurement or control
-   - Maintains setpoint even during temporary disturbances
-
-When enabled, the closed loop controller intercepts all device control requests (except direct API calls), treats them as setpoint changes, and then continuously manages device values to maintain that setpoint.
-
-### Scheduled Commands
+### Scheduled Setpoints
 
 Scheduled commands allow for time-based control (in UTC) of grid assets, enabling automated operation based on predefined time slots throughout the day.
-
-#### How Scheduled Commands Work
 
 1. **Schedule Definition**:
    - Schedules are defined for specific dates and device categories
@@ -258,11 +232,43 @@ Scheduled commands allow for time-based control (in UTC) of grid assets, enablin
 
 Scheduled commands provide powerful automated control based on time patterns, enabling predictable operation without constant manual intervention.
 
-### Watchdog Mechanism
+### Dynamic Setpoint
 
+Smart Grid Manager includes a sophisticated closed loop control system that enables automatic, real-time adjustments to maintain desired power setpoints. This PID-based control algorithm provides precise management of energy assets without requiring constant manual intervention.
+
+1. **Continuous Monitoring**:
+   - The system constantly reads measurements from a meter device
+   - It also monitors the current output of the controlled device
+   - Readings that are more than 10 seconds old are considered stale and trigger fallback behavior
+
+2. **PID Control Algorithm**:
+   - Proportional-Integral-Derivative controller calculates optimal adjustments
+   - Proportional term responds to immediate error between setpoint and actual measurement
+   - Integral term handles persistent offsets by accumulating error over time
+   - Anti-windup mechanism prevents integral term from growing excessively
+   - Rate limiting prevents abrupt changes that could destabilize the grid
+
+3. **Feedback Loop**:
+   - The error (difference between setpoint and actual measurement) drives adjustments
+   - Adjustments are automatically scaled based on device capabilities
+   - Commands are constrained within safe operating limits
+   - The system continuously refines outputs to match the desired setpoint
+
+4. **Configuration Options**:
+   - Proportional and integral gain parameters control responsiveness
+   - Maximum rate of change limits how quickly adjustments can occur
+   - Fallback setpoint provides safe operation if readings become stale
+   - Time step determines how frequently adjustments are calculated
+
+5. **Resilience Features**:
+   - Handles communication interruptions with fallback values
+   - Automatically recovers from errors during measurement or control
+   - Maintains setpoint even during temporary disturbances
+
+When enabled, the closed loop controller intercepts all device control requests (except direct API calls), treats them as setpoint changes, and then continuously manages device values to maintain that setpoint.
+
+#### Watchdog setpoint
 The watchdog mechanism is a critical safety feature that ensures devices revert to known safe states if communication or control failures occur.
-
-#### How the Watchdog Mechanism Works
 
 1. **Timeout Monitoring**:
    - Tracks the time elapsed since the last direct API request
@@ -296,11 +302,11 @@ The watchdog mechanism is a critical safety feature that ensures devices revert 
 
 The watchdog mechanism forms a critical safety layer in the system, ensuring that temporary control measures don't inadvertently become permanent states.
 
-### Cyclic Writer
+### Edge Setpoint Transfer in detail
 
 The cyclic writer operates as the lowest priority control mechanism, providing a consistent background process that ensures device values maintain stability over time.
 
-#### How the Cyclic Writer Works
+#### Cyclic write (default)
 
 1. **Periodic Operation**:
    - Runs on a configurable interval defined by the site's `cyclic_write_timeout` setting
@@ -319,6 +325,7 @@ The cyclic writer operates as the lowest priority control mechanism, providing a
    - If no schedule exists, writes the device's default value
    - Never overwrites values set by higher priority mechanisms
    - Maintains values consistent with system intent
+   - value sent is automatically rate limited to match operational requirements
 
 4. **Implementation Details**:
    - Runs on the edge nodes independently
@@ -332,7 +339,23 @@ The cyclic writer operates as the lowest priority control mechanism, providing a
    - Ensures system stability during extended operation
    - Provides baseline control when no other mechanisms are active
 
+
 The cyclic writer serves as a reliability enhancement, ensuring that the intended system state persists even over extended operational periods without active intervention.
+
+##### Rate limiting & setpoint update rate
+
+Although Solar inverters are usually capable of high rates of change in their output, that is not always allowed by regulations and / or other hardware such as transformers.
+For certain usage like trading it can be beneficial to update setpoints more often. But by updating more often the risk grows that a full on/off cycle is taking it's toll on the installed electric system.
+Therfore we use a rate limiter that will limit the rate of change on the final setpoint sent to the hardware.
+
+We follow the regulations that are designed for this purpose.
+The dutch [grid regulations](https://www.netbeheernederland.nl/sites/default/files/2024-02/e02_-_20231223_-_20240116_-_netcode_elektriciteit.pdf) state two ways to set this up:
+- 0 to full power in 5 minutes (20%/min) for normal use (page 32)
+- faster for FFR and other balancing functionalities (up to 4s on to off)
+
+The default setting is 20% as prescribed by the grid regulations. If you need a faster interaction, that is to be verified both legally and functionally with the party responsible for the operation of the asset.
+
+The setting can be changed thorugh the API on a per-site basis as found in [Site Rate limiting]().
 
 ### Key Capabilities
 
