@@ -1,11 +1,57 @@
-# Smart Grid Manager API - User Guide
+# Smart Grid Manager API - Developer User Guide
+
+## Introduction
 
 Welcome to the Smart Grid Manager API! This guide will walk you through everything you need to know to interact with the API effectively. The Smart Grid Manager system provides a secure, privacy-focused solution that gives you complete control over your energy assets while ensuring reliable operation.
 
+### What is Smart Grid Manager?
+
+Smart Grid Manager is a sophisticated system designed to control and manage power in- and output in real-time across a wide variety of grid assets. It enables grid operators, asset owners, traders and energy companies to:
+
+1. **Actively control energy production and consumption** from diverse grid assets
+2. **Respond to grid demands** by adjusting power flow
+3. **Schedule production and storage levels** throughout the day
+4. **Ensure compliance** with grid regulations and power agreements
+
+The system supports a wide range of grid-connected assets including:
+- Solar installations (inverters, panels)
+- Wind turbines
+- Battery storage systems
+- EV charging stations
+- Conventional generators
+- Data loggers and monitoring equipment
+
+#### Key Capabilities
+
+- **Real-time Control**: Adjust power flow of diverse grid assets instantly
+- **Multi-Asset Support**: Manage solar inverters, wind turbines, battery systems, EV chargers, and more
+- **Closed Loop Control**: Maintain precise setpoints automatically through PID feedback control
+- **Scheduled Management**: Define operation parameters for specific time (UTC) periods across all asset types
+- **Category-based Control**: Group devices by type for easier management (inverters, batteries, EV chargers, etc.)
+- **Automated Failsafes**: Watchdog mechanism ensures devices revert to safe states
+- **Comprehensive Logging**: Track all control activities and device errors across your asset portfolio
+- **Flexible Authentication**: Control access at different levels with tokens
+- **Protocol Flexibility**: Support for multiple communication protocols (Modbus, MQTT, proprietary APIs)
+- **Edge Intelligence**: Local processing at the edge minimizes latency and ensures reliability
+
+### Helin Platform Integration
+
+The Helin Platform serves as the critical backbone between the Smart Grid Manager API and the edge nodes deployed at your sites:
+
+- **Secure Communication**: All commands and data are transmitted securely between the API and edge nodes
+- **Real-time Command Delivery**: The platform ensures curtailment commands reach edge nodes with minimal latency
+- **Resilient Connection**: Edge nodes maintain local capabilities even during temporary connection issues
+- **Data Synchronization**: Schedule information is automatically synchronized to edge nodes
+- **Health Monitoring**: The platform continuously monitors the connection status of all edge nodes
+
+Find your full Helin Platform reference at XX/YY 
+
+
+
 ## Table of Contents
 
-1. [Understanding Smart Grid Manager](#understanding-smart-grid-manager)
-    - [What is Smart Grid Manager?](#what-is-smart-grid-manager)
+0. [Introduction]()
+1. [Understanding Smart Grid Manager API](#understanding-smart-grid-manager)
     - [System Architecture](#system-architecture)
     - [Command Processing System](#command-processing-system)
       - [API Setpoint Delivery Types](#setpoint-delivery-methods)
@@ -50,30 +96,8 @@ Welcome to the Smart Grid Manager API! This guide will walk you through everythi
     - [Error Handling](#error-handling)
 11. [Troubleshooting](#troubleshooting)
 
-## Understanding Smart Grid Manager
-
-### What is Smart Grid Manager?
-
-Smart Grid Manager is a sophisticated system designed to control and manage power in- and output in real-time across a wide variety of grid assets. It enables grid operators, energy companies, and facility managers to:
-
-1. **Actively manage energy production and consumption** from diverse grid assets
-2. **Respond to grid demands** by adjusting power flow
-3. **Schedule production and storage levels** throughout the day
-4. **Ensure compliance** with grid regulations and power agreements
-
-At its core, Smart Grid Manager allows you to "curtail" (reduce) or optimize the power flow of connected grid devices when needed, rather than always operating at maximum capacity or default settings.
-
-The system supports a wide range of grid-connected assets including:
-- Solar installations (inverters, panels)
-- Wind turbines
-- Battery storage systems
-- EV charging stations
-- Conventional generators
-- Heat pumps
-- Industrial loads
-- Data loggers and monitoring equipment
-
-### System Architecture
+## Understanding Smart Grid Manager API
+### SGM API Hierarchy
 
 The Smart Grid Manager system follows a hierarchical structure:
 
@@ -82,25 +106,18 @@ The Smart Grid Manager system follows a hierarchical structure:
 - **Devices**: Actual hardware (inverters, batteries, wind turbines, EV chargers, generators, etc.) connected to nodes
 - **Device Types**: Templates defining properties and capabilities of different types of devices
 
-The API communicates with edge nodes through the Helin Platform, which then relay commands to the physical devices using various protocols (Modbus, MQTT, etc.). 
+The API communicates with edge nodes through the [Helin Platform](), which then relay commands to the physical devices using various protocols (Modbus, MQTT, etc.).
 
-#### Helin Platform Integration
-
-The Helin Platform serves as the critical communication backbone between the Smart Grid Manager API and the edge nodes deployed at your sites:
-
-- **Secure Communication**: All commands and data are transmitted securely between the API and edge nodes
-- **Real-time Command Delivery**: The platform ensures curtailment commands reach edge nodes with minimal latency
-- **Resilient Connection**: Edge nodes maintain local capabilities even during temporary connection issues
-- **Data Synchronization**: Schedule information is automatically synchronized to edge nodes
-- **Health Monitoring**: The platform continuously monitors the connection status of all edge nodes
+At this point a one-to-many relation exists between the layers, meaning a multiple nodes can exist at a site, but not vice-versa.
 
 ### Command Processing System
 
-Smart Grid Manager employs sophisticated control mechanisms organized into two primary categories: setpoint delivery methods and setpoint lifetime management. Understanding these systems is essential for predictable control behavior.
+Smart Grid Manager employs control mechanisms organized into two primary categories: API setpoints and Edge Setpoints. Understanding these systems is essential for predictable control behavior.
+API setpoints are the actual setpoints executed by the user, Edge setpoints are the resulting setpoints transferred to the asset by the Node on the Edge.
 
-#### API Setpoint Delivery Types
+#### API Setpoints
 
-Smart Grid Manager supports multiple methods to deliver control setpoints to devices, with a clear priority hierarchy:
+Smart Grid Manager API supports multiple methods to create setpoints for assets, with a clear priority hierarchy:
 
 1. **[Immediate setpoint (% or kW)](#direct-api-requests)** (Highest Priority)
    - Manual control requests initiated through the API endpoints
@@ -108,18 +125,18 @@ Smart Grid Manager supports multiple methods to deliver control setpoints to dev
    - Provides direct control for operators and integration systems
    - Ideal for emergency responses or manual testing scenarios
 
-2. **[Scheduled setpoint (% or kW)](#scheduled-commands)**
+2. **[Dynamic setpoint (% and kW)]()**
+   - PID controlled setpoint that corrects for local use
+   - kW setting for the measurement point
+   - on/off switch for the PV system
+
+3. **[Scheduled setpoint (% or kW)](#scheduled-commands)**
    - Time-based setpoints in UTC defined in 15-minute increments
    - Automatically activated at the scheduled times
    - Only takes effect if no API request is currently active
    - Provides planned, automated control throughout the day
 
-4. **[Dynamic setpoint (% and kW)]()**
-   - PID controlled setpoint that corrects for local use
-   - kW setting for the measurement point
-   - on/off switch for the PV system
-
-3. **[Fallback setpoint (% or kW)](#watchdog-mechanism)**
+4. **[Fallback setpoint (% or kW)](#watchdog-mechanism)**
    - Safety mechanism that activates when higher-priority controls timeout
    - Restores devices to safe states automatically
    - Reverts to scheduled values or device defaults as appropriate
@@ -127,9 +144,9 @@ Smart Grid Manager supports multiple methods to deliver control setpoints to dev
 
 When multiple delivery methods attempt to control a device simultaneously, the system always respects this priority order, with API requests taking precedence over scheduled commands, and watchdog acting as a safety fallback.
 
-#### Edge Setpoint Transfer
+#### Edge Setpoints
 
-Once a setpoint has been delivered via one of the methods above, its persistence is managed through one of these approaches:
+Setpoints delivered to the Edge Node are transfered to the asset on site in one of these ways:
 
 1. **[Singular write (to be deprecated)]()**
    - Setpoint is applied once to the device
@@ -167,20 +184,14 @@ Direct API requests represent the highest priority control method in the Smart G
 
 1. **Immediate Command Execution**:
    - Commands are sent directly through the API endpoints
-   - Requests are processed with the highest priority in the system
-   - Values are applied to the target devices without delay
-   - All other control methods are temporarily overridden
 
 2. **Request Structure**:
    - Contains the target device(s) or category identification
    - Specifies the desired control value to be applied
    - May include additional parameters for specific control scenarios
-   - Authentication headers ensure proper access control
 
 3. **Implementation Details**:
    - Requests are validated for correct format and permissible values
-   - Commands are routed through the Helin Platform to edge nodes
-   - Edge nodes interpret the commands and apply them to physical devices
    - Success/failure status is reported back to the API caller
 
 4. **Timeout Behavior**:
@@ -188,15 +199,9 @@ Direct API requests represent the highest priority control method in the Smart G
    - The timeout is defined by the site's `curtailment_time_limit` parameter (typically 60-90 seconds)
    - After timeout, the watchdog mechanism activates to revert to appropriate values
 
-5. **Use Cases**:
-   - Emergency grid stabilization scenarios
-   - Manual testing and calibration of devices
-   - Immediate response to grid operator requests
-   - Overriding automated systems when necessary
-
 Direct API requests give operators full manual control when needed, ensuring human oversight can always take precedence in the control hierarchy.
 
-### Scheduled Setpoints
+#### Scheduled Setpoints
 
 Scheduled commands allow for time-based control (in UTC) of grid assets, enabling automated operation based on predefined time slots throughout the day.
 
@@ -204,13 +209,11 @@ Scheduled commands allow for time-based control (in UTC) of grid assets, enablin
    - Schedules are defined for specific dates and device categories
    - Time slots are set in UTC in 15-minute increments (00:00, 00:15, 00:30, 00:45)
    - Each time slot specifies a control value to be applied
-   - Values range from 0-100 or device-specific control parameters
 
 2. **Synchronization Process**:
    - Schedules are created or updated via the API
    - Schedule data is synchronized to edge nodes
    - Edge nodes store the schedules locally for reliability
-   - Local storage ensures operation even during connection loss
 
 3. **Time-based Activation**:
    - As each time slot is reached, the corresponding value is applied
@@ -220,39 +223,32 @@ Scheduled commands allow for time-based control (in UTC) of grid assets, enablin
 
 4. **Priority Logic**:
    - Scheduled commands are overridden by direct API requests
-   - Scheduled commands are overridden by closed loop control
-   - Scheduled commands take precedence over watchdog and cyclic writer
    - Missing time slots default to the device's default value
 
 5. **Advanced Features**:
-   - Multi-day scheduling allows planning far in advance
-   - Different schedules can be applied to different device categories
+   - Multi-day scheduling allowed
+   - Different schedules can be applied to different device categories at a single site
    - Schedule validation ensures all values are within safe limits
    - Synchronization status tracking confirms successful deployment
 
 Scheduled commands provide powerful automated control based on time patterns, enabling predictable operation without constant manual intervention.
 
-### Dynamic Setpoint
+#### Dynamic Setpoint
 
-Smart Grid Manager includes a sophisticated closed loop control system that enables automatic, real-time adjustments to maintain desired power setpoints. This PID-based control algorithm provides precise management of energy assets without requiring constant manual intervention.
+Smart Grid Manager includes a closed loop control system that enables automatic, real-time adjustments to maintain desired power setpoints. This PID-based control algorithm provides precise management of energy assets without requiring constant manual intervention.
 
 1. **Continuous Monitoring**:
-   - The system constantly reads measurements from a meter device
-   - It also monitors the current output of the controlled device
+   - The system constantly reads measurements from a meter device & corrects setpoint
    - Readings that are more than 10 seconds old are considered stale and trigger fallback behavior
 
 2. **PID Control Algorithm**:
    - Proportional-Integral-Derivative controller calculates optimal adjustments
-   - Proportional term responds to immediate error between setpoint and actual measurement
-   - Integral term handles persistent offsets by accumulating error over time
    - Anti-windup mechanism prevents integral term from growing excessively
    - Rate limiting prevents abrupt changes that could destabilize the grid
 
 3. **Feedback Loop**:
-   - The error (difference between setpoint and actual measurement) drives adjustments
    - Adjustments are automatically scaled based on device capabilities
    - Commands are constrained within safe operating limits
-   - The system continuously refines outputs to match the desired setpoint
 
 4. **Configuration Options**:
    - Proportional and integral gain parameters control responsiveness
@@ -267,7 +263,7 @@ Smart Grid Manager includes a sophisticated closed loop control system that enab
 
 When enabled, the closed loop controller intercepts all device control requests (except direct API calls), treats them as setpoint changes, and then continuously manages device values to maintain that setpoint.
 
-#### Watchdog setpoint
+#### Fallback setpoint
 The watchdog mechanism is a critical safety feature that ensures devices revert to known safe states if communication or control failures occur.
 
 1. **Timeout Monitoring**:
@@ -286,10 +282,8 @@ The watchdog mechanism is a critical safety feature that ensures devices revert 
    - Runs as a high-priority process on edge nodes
    - Cannot be disabled to ensure failsafe operation
    - Executes even during communication interruptions with the central system
-   - Provides essential protection against "stuck" control values
 
 4. **Automatic Recovery**:
-   - Reverts devices to known states without manual intervention
    - Prevents devices from remaining in curtailed states indefinitely
    - Creates log entries when activated to track occurrences
    - Allows normal control to resume once proper commands are received
@@ -310,15 +304,11 @@ The cyclic writer operates as the lowest priority control mechanism, providing a
 
 1. **Periodic Operation**:
    - Runs on a configurable interval defined by the site's `cyclic_write_timeout` setting
-   - Typically operates every few minutes to few hours depending on configuration
-   - Acts as a background process without user interaction
-   - Only becomes active when no higher priority controls are present
+   - Typically operates every few seconds to few hours depending on configuration
 
 2. **Value Reinforcement**:
    - Writes the appropriate value to each device periodically
-   - Reinforces existing values rather than changing them
-   - Ensures values don't drift due to device resets or power fluctuations
-   - Maintains system state integrity over extended periods
+   - Rewrites values so that asset can monitor Node health
 
 3. **Value Determination**:
    - If a scheduled command is active, writes the scheduled value
@@ -329,20 +319,14 @@ The cyclic writer operates as the lowest priority control mechanism, providing a
 
 4. **Implementation Details**:
    - Runs on the edge nodes independently
-   - Operates even during temporary central system unavailability
-   - Uses minimal resources to avoid system impact
-   - Creates minimal log entries to prevent log flooding
 
 5. **Benefits and Use Cases**:
-   - Protects against device memory loss after power cycles
    - Handles devices that may "forget" settings over time
    - Ensures system stability during extended operation
-   - Provides baseline control when no other mechanisms are active
-
 
 The cyclic writer serves as a reliability enhancement, ensuring that the intended system state persists even over extended operational periods without active intervention.
 
-##### Rate limiting & setpoint update rate
+#### Rate limiting & setpoint update rate
 
 Although Solar inverters are usually capable of high rates of change in their output, that is not always allowed by regulations and / or other hardware such as transformers.
 For certain usage like trading it can be beneficial to update setpoints more often. But by updating more often the risk grows that a full on/off cycle is taking it's toll on the installed electric system.
@@ -357,30 +341,8 @@ The default setting is 20% as prescribed by the grid regulations. If you need a 
 
 The setting can be changed thorugh the API on a per-site basis as found in [Site Rate limiting]().
 
-### Key Capabilities
 
-- **Real-time Control**: Adjust power flow of diverse grid assets instantly
-- **Multi-Asset Support**: Manage solar inverters, wind turbines, battery systems, EV chargers, and more
-- **Closed Loop Control**: Maintain precise setpoints automatically through PID feedback control
-- **Scheduled Management**: Define operation parameters for specific time (UTC) periods across all asset types
-- **Category-based Control**: Group devices by type for easier management (inverters, batteries, EV chargers, etc.)
-- **Automated Failsafes**: Watchdog mechanism ensures devices revert to safe states
-- **Comprehensive Logging**: Track all control activities and device errors across your asset portfolio
-- **Flexible Authentication**: Control access at different levels with tokens
-- **Protocol Flexibility**: Support for multiple communication protocols (Modbus, MQTT, proprietary APIs)
-- **Edge Intelligence**: Local processing at the edge minimizes latency and ensures reliability
 
-### Common Use Cases
-
-1. **Grid Balancing**: Adjust power production or consumption across different types of assets to maintain grid stability
-2. **Capacity Management**: Ensure compliance with maximum export/import power agreements
-3. **Asset Protection**: Limit output or input during grid instability to protect various grid assets
-4. **Scheduled Energy Management**: Optimize generation, storage, and consumption based on energy market pricing
-5. **Fault Recovery**: Automatic recovery from communication failures across all device types
-6. **Renewable Integration**: Coordinate renewable assets with storage and flexible loads
-7. **EV Charging Management**: Control and schedule EV charging stations to optimize grid impact
-8. **Demand Response**: Participate in grid demand response programs by adjusting multiple asset types simultaneously
-9. **Virtual Power Plants**: Aggregate and control diverse assets to operate as a unified virtual plant
 
 ## Authentication
 
