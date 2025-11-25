@@ -339,22 +339,19 @@ The throttle currently implemented in the API is 10s, enabling 3 full on/off cyc
 
 The rate-limiter will create a linearly interpolated setpoint with the allowed rate of change every write cycle. We set this to 300%/min by default, allowing for the same rate of change as the 20s full on/off cycle as the throttle. These setpoints will be written every 5s with the cyclic writer.
 
-Below image shows the 10s throttle, the rate limit and the cyclic writer in time.
+**Below image shows the 10s throttle, the rate limit and the cyclic writer in time.**
 
 <img width="992" height="550" alt="image" src="https://github.com/user-attachments/assets/6b4de2bd-e5dd-4455-96f7-d5b503d72898" />
 
 
-The setting will be available in the next release of the API and can be changed through the API on a per-device basis as found in [Device Managemnet](https://github.com/HelinData/SGM_API_Documentation/blob/RC_2.2.0/README.md#device-management).
+The setting will be available in the next release of the API and can be changed through the API on a per-device basis as found in [Device Management](https://github.com/HelinData/SGM_API_Documentation/blob/RC_2.2.0/README.md#device-management).
 
-We follow the regulations that are designed for this purpose.
-The dutch [grid regulations](https://www.netbeheernederland.nl/sites/default/files/2024-02/e02_-_20231223_-_20240116_-_netcode_elektriciteit.pdf) state two ways to set this up:
+
+The dutch grid regulations specify rates of change for two types of assets. There are normal assets that have a prescribed rate of 20%/min and there are 'fast' acting devices that serve some way of balancing (or trading).
+We consider devices controlled by our product to be the second group.
 - 0 to full power in 5 minutes (20%/min) for normal use (page 32)
 - faster for FFR and other balancing functionalities (up to 4s on to off)
-
-
-
-
-
+The dutch [grid regulations](https://www.netbeheernederland.nl/sites/default/files/2024-02/e02_-_20231223_-_20240116_-_netcode_elektriciteit.pdf)
 
 ## Authentication
 
