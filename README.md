@@ -335,14 +335,13 @@ To prevent damage to systems we use two methods of protection:
 - a setpoint throttle on the API
 - a rate-limiter that softens the setpoint sent to the actual hardware with a preset rate _(Implemented next release)_
 
-The throttle currently implemented in the API is 10s, enabling 3 full on/off cycles per minute. The supported hardware of major brands (Sungrow, Huawei, SMA) all allow this from a hardware perspective, but there is no information on actually doing this over extended periods of time.
+The throttle currently implemented in the API is 10s, enabling 3 full on/off cycles per minute. The supported hardware of major brands (Sungrow, Huawei, SMA) all allow this from a hardware perspective.
 
 The rate-limiter will create a linearly interpolated setpoint with the allowed rate of change every write cycle. We set this to 300%/min by default, allowing for the same rate of change as the 20s full on/off cycle as the throttle. These setpoints will be written every 5s with the cyclic writer.
 
 **Below image shows the 10s throttle, the rate limit and the cyclic writer in time.**
 
-<img width="992" height="550" alt="image" src="https://github.com/user-attachments/assets/6b4de2bd-e5dd-4455-96f7-d5b503d72898" />
-
+<img width="984" height="571" alt="image" src="https://github.com/user-attachments/assets/d24cdb06-4da4-44ea-a359-16b5dc9f4669" />
 
 The setting will be available in the next release of the API and can be changed through the API on a per-device basis as found in [Device Management](https://github.com/HelinData/SGM_API_Documentation/blob/RC_2.2.0/README.md#device-management).
 
